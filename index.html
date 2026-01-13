@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMP - עיבוד בתנועות עיניים</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --baby-pink: #FDF2F4;
+            --pink-medium: #F8E1E7;
+            --mint-green: #B8E4D8;
+            --gold: #D4AF37;
+            --gold-light: #F5E6B8;
+            --dark: #2D2D2D;
+            --white: #FFFAF5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(180deg, var(--baby-pink) 0%, #FEF6F8 50%, var(--baby-pink) 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .eye-icon { font-size: 70px; margin-bottom: 10px; }
+        .header h1 {
+            font-size: 42px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+        }
+        .header .subtitle { font-size: 16px; color: var(--dark); margin-top: 5px; }
+        .nav-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: #888;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+        }
+        .nav-tab .icon { font-size: 24px; margin-bottom: 3px; }
+        .nav-tab.active { color: var(--gold); }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        .card-icon { font-size: 40px; margin-bottom: 15px; }
+        .card h3 { font-size: 20px; color: var(--dark); margin-bottom: 10px; }
+        .card p { color: #666; font-size: 15px; line-height: 1.8; }
+        .session-container {
+            background: #1a1a2e;
+            border-radius: 30px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .session-track {
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 40px;
+            position: relative;
+            margin: 30px 0;
+        }
+        .session-ball {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold));
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            left: 10px;
+            box-shadow: 0 0 30px var(--gold);
+        }
+        .session-instructions {
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .session-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .session-btn {
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+        }
+        .session-btn.primary {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: white;
+        }
+        .session-btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .settings-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-value { display: flex; align-items: center; gap: 15px; }
+        .setting-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .setting-number {
+            font-size: 18px;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: center;
+        }
+        .timer-display {
+            text-align: center;
+            color: white;
+            margin: 20px 0;
+        }
+        .timer-value { font-size: 48px; font-weight: 900; }
+        .timer-label { font-size: 14px; opacity: 0.7; }
+        .passes-counter {
+            color: var(--gold);
+            text-align: center;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        .movement-type {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .movement-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 15px;
+            font-family: 'Heebo', sans-serif;
+            cursor: pointer;
+        }
+        .movement-btn.active {
+            border-color: var(--gold);
+            background: rgba(212,175,55,0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .stat-value { font-size: 28px; font-weight: 900; color: var(--gold); }
+        .stat-label { font-size: 13px; color: #888; margin-top: 5px; }
+        .belief-section { margin: 20px 0; }
+        .belief-label {
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .belief-input, .belief-textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(212,175,55,0.3);
+            border-radius: 15px;
+            font-size: 16px;
+            font-family: 'Heebo', sans-serif;
+        }
+        .belief-textarea { min-height: 100px; resize: none; }
+        .belief-input:focus, .belief-textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        .sud-scale { margin: 20px 0; }
+        .sud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sud-title { font-size: 14px; color: var(--dark); font-weight: 500; }
+        .sud-value { font-size: 24px; font-weight: 900; color: var(--gold); }
+        .sud-slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to left, #ff6b6b, #ffd93d, #6bcb77);
+            border-radius: 10px;
+        }
+        .sud-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .sud-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            margin-top: 20px;
+        }
+        .info-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid var(--pink-medium);
+        }
+        .info-section h4 { color: var(--dark); font-size: 18px; margin-bottom: 15px; }
+        .info-section p { color: #555; font-size: 14px; line-height: 1.8; }
+        .info-section ul { list-style: none; padding: 0; margin-top: 15px; }
+        .info-section li {
+            padding: 8px 0;
+            padding-right: 25px;
+            position: relative;
+            color: #555;
+            font-size: 14px;
+        }
+        .info-section li::before {
+            content: '✦';
+            position: absolute;
+            right: 0;
+            color: var(--gold);
+        }
+        .protocol-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .protocol-card:hover {
+            border-color: var(--gold);
+            transform: translateX(-5px);
+        }
+        .protocol-card.main-action {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            border: none;
+        }
+        .protocol-card.main-action .protocol-content h4,
+        .protocol-card.main-action .protocol-content p {
+            color: white;
+        }
+        .protocol-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--baby-pink) 0%, var(--mint-green) 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .protocol-card.main-action .protocol-icon {
+            background: rgba(255,255,255,0.3);
+        }
+        .protocol-content h4 { font-size: 16px; color: var(--dark); margin-bottom: 5px; }
+        .protocol-content p { font-size: 13px; color: #888; }
+        .journal-entry {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .journal-date { font-size: 12px; color: #888; margin-bottom: 5px; }
+        .journal-content { font-size: 14px; color: var(--dark); line-height: 1.6; }
+        .journal-sud {
+            display: inline-block;
+            padding: 3px 10px;
+            background: var(--mint-green);
+            border-radius: 10px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .reset-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 12px 25px;
+            background: transparent;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            color: #999;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+        }
+        .tip-box {
+            background: rgba(212,175,55,0.1);
+            border: 1px solid var(--gold);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #666;
+        }
+        .tip-box strong { color: var(--gold); }
+        .warning-box {
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #cc6666;
+        }
+        .back-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .back-btn:hover {
+            background: var(--gold);
+            color: white;
+        }
+        .back-btn-dark {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .back-btn-dark:hover {
+            background: var(--gold);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="eye-icon">👁️</div>
+            <h1>EMP</h1>
+            <p class="subtitle">Eye Movement Processing</p>
+            <p class="subtitle">עיבוד בתנועות עיניים</p>
+        </div>
+
+        <div id="home-screen" class="screen active">
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h3>מה זה EMP?</h3>
+                <p>EMP היא טכניקה לעיבוד רגשי המבוססת על תנועות עיניים דו-צדדיות, בדומה ל-EMDR שפותחה ב-1987 על ידי ד"ר פרנסין שפירו. תנועות העיניים מפעילות את שני ההמיספרות של המוח ומאפשרות עיבוד של זיכרונות ורגשות.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-sessions">0</div>
+                    <div class="stat-label">סשנים</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-minutes">0</div>
+                    <div class="stat-label">דקות עיבוד</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-beliefs">0</div>
+                    <div class="stat-label">אמונות שעובדו</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-avg-drop">-</div>
+                    <div class="stat-label">ירידה ממוצעת SUD</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h4>⚙️ הגדרות לפי הפרוטוקול המקצועי</h4>
+                <p><strong>מהירות:</strong></p>
+                <ul>
+                    <li><strong>איטי (0.5-0.7):</strong> להתקנת משאבים חיוביים ומקום בטוח - מומלץ למתחילים</li>
+                    <li><strong>בינוני (0.8-1.0):</strong> 0.7-1.0 שניות בין צד לצד - לעיבוד רגיל</li>
+                    <li><strong>מהיר (1.5+):</strong> לעיבוד טראומה - למתקדמים בלבד</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>מספר מעברים (סט):</strong></p>
+                <ul>
+                    <li><strong>5-6 מעברים:</strong> סט סטנדרטי מומלץ לפי הפרוטוקול</li>
+                    <li><strong>10-20 מעברים:</strong> רק אם מרגישים בנוח, לעצור מיד אם עולה מצוקה</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>זמן סשן מומלץ:</strong></p>
+                <ul>
+                    <li><strong>20 שניות:</strong> סט סטנדרטי לפי הפרוטוקול המקורי</li>
+                    <li><strong>30-60 שניות:</strong> לעיבוד מעמיק יותר</li>
+                    <li><strong>10 שניות:</strong> להתקנת משאבים חיוביים (סט קצר)</li>
+                </ul>
+                <p style="margin-top: 15px; font-size: 13px; color: #888;">📚 מקור: פרוטוקול EMDR של ד"ר שפירו ומחקרים קליניים</p>
+            </div>
+
+            <div class="warning-box">
+                ⚠️ <strong>חשוב:</strong> לטראומות מורכבות מומלץ לעבוד עם מטפל/ת EMDR מוסמך/ת. האפליקציה מתאימה לעבודה עצמית עם אמונות מגבילות ורגשות קלים-בינוניים.
+            </div>
+
+            <div class="info-section">
+                <h4>🎯 מתי להשתמש ב-EMP?</h4>
+                <p><strong>מתאים לעבודה עצמית:</strong></p>
+                <ul>
+                    <li>אמונות מגבילות ("אני לא מספיק טוב/ה")</li>
+                    <li>חרדות קלות-בינוניות</li>
+                    <li>רגשות "תקועים"</li>
+                    <li>התקנת משאבים חיוביים ומקום בטוח</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>דורש מטפל/ת מקצועי/ת:</strong></p>
+                <ul>
+                    <li>טראומות מורכבות ו-PTSD</li>
+                    <li>התעללות בילדות</li>
+                    <li>אובדן טראומטי</li>
+                </ul>
+            </div>
+
+            <div class="info-section">
+                <h4>💡 טיפים לסשן מוצלח</h4>
+                <ul>
+                    <li>לבחור מקום שקט ונוח</li>
+                    <li>לשבת ישר, ראש יציב</li>
+                    <li>רק העיניים זזות - לא הראש!</li>
+                    <li>לא לדכא מחשבות - להרשות להן לעבור</li>
+                    <li>לנשום עמוק בין סטים</li>
+                    <li>לעצור מיד אם עולה מצוקה חזקה</li>
+                    <li>לשתות מים אחרי הסשן</li>
+                </ul>
+            </div>
+
+            <div class="protocol-card main-action" onclick="showScreen('session')">
+                <div class="protocol-icon">▶️</div>
+                <div class="protocol-content">
+                    <h4>התחלת סשן חדש</h4>
+                    <p>התחלת תהליך עיבוד</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="session-screen" class="screen">
+            <div class="card">
+                <div class="card-icon">🎯</div>
+                <h3>הכנה לסשן</h3>
+                <p>לפני שמתחילים, צריך להגדיר על מה עובדים</p>
+            </div>
+
+            <div class="belief-section">
+                <div class="belief-label">📝 מה האמונה/הזיכרון לעיבוד?</div>
+                <textarea class="belief-textarea" id="belief-input" placeholder="לדוגמה: אני לא מספיק טוב/ה, פחד מנטישה, זיכרון כואב..."></textarea>
+            </div>
+
+            <div class="belief-section">
+                <div class="belief-label">✨ מה האמונה החיובית להחדרה במקום?</div>
+                <input type="text" class="belief-input" id="positive-belief" placeholder="לדוגמה: אני ראוי/ה לאהבה, אני בטוח/ה...">
+            </div>
+
+            <div class="sud-scale">
+                <div class="sud-header">
+                    <span class="sud-title">🌡️ רמת המצוקה (SUD) - לפני</span>
+                    <span class="sud-value" id="sud-before-value">5</span>
+                </div>
+                <input type="range" class="sud-slider" id="sud-before" min="0" max="10" value="5" oninput="document.getElementById('sud-before-value').textContent=this.value">
+                <div class="sud-labels">
+                    <span>0 - שלווה מוחלטת</span>
+                    <span>10 - מצוקה קשה</span>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 SUD</strong> (Subjective Units of Distress) = יחידות מצוקה סובייקטיביות. יש לדרג כמה מורגש הרגש השלילי כרגע כשחושבים על האמונה/הזיכרון.
+            </div>
+
+            <button class="save-btn" onclick="startEMPSession()">התחלת סשן EMP 👁️</button>
+        </div>
+
+        <div id="active-session-screen" class="screen">
+            <div class="session-container">
+                <div class="session-instructions">
+                    👁️ לעקוב אחרי הכדור בעיניים בלבד<br>
+                    🧘 לשמור על הראש יציב
+                </div>
+
+                <div class="timer-display">
+                    <div class="timer-value" id="session-timer">00:00</div>
+                    <div class="timer-label">זמן סשן</div>
+                </div>
+
+                <div class="movement-type">
+                    <button class="movement-btn active" id="horizontal-btn" onclick="setMovement('horizontal')">↔️ אופקי</button>
+                    <button class="movement-btn" id="vertical-btn" onclick="setMovement('vertical')">↕️ אנכי</button>
+                </div>
+
+                <div class="session-track" id="session-track">
+                    <div class="session-ball" id="session-ball"></div>
+                </div>
+
+                <div class="passes-counter">
+                    מעבר <span id="current-pass">0</span> מתוך <span id="total-passes">6</span>
+                    <br><small style="opacity: 0.7;">אחרי כל סט - נשימה עמוקה ובדיקה איך מרגישים</small>
+                </div>
+
+                <div class="settings-panel">
+                    <div class="setting-row">
+                        <span class="setting-label">מהירות</span>
+                        <div class="setting-value">
+                            <button class="setting-btn" onclick="adjustSpeed(-0.1)">-</button>
+                            <span class="setting-number" id="speed-value">0.7</span>
+                            <button class="setting-btn" onclick="adjustSpeed(0.1)">+</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">מעברים בסט</span>
+                        <div class="setting-value">
+                            <button class="setting-btn" onclick="adjustPasses(-1)">-</button>
+                            <span class="setting-number" id="passes-value">6</span>
+                            <button class="setting-btn" onclick="adjustPasses(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">זמן סשן (שניות)</span>
+                        <div class="setting-value">
+                            <button class="setting-btn" onclick="adjustDuration(-10)">-</button>
+                            <span class="setting-number" id="duration-value">20</span>
+                            <button class="setting-btn" onclick="adjustDuration(10)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="session-controls">
+                    <button class="session-btn primary" id="play-btn" onclick="toggleSession()">▶️ התחלה</button>
+                    <button class="session-btn secondary" onclick="endSession()">סיום</button>
+                </div>
+                
+                <button class="back-btn-dark" onclick="showScreen('home')">← חזרה להגדרות מומלצות</button>
+            </div>
+        </div>
+
+        <div id="end-session-screen" class="screen">
+            <div class="card">
+                <div class="card-icon">✅</div>
+                <h3>סיום הסשן</h3>
+                <p>כל הכבוד! עכשיו לבדוק איך מרגישים</p>
+            </div>
+
+            <div class="info-section">
+                <h4>💭 האמונה שעובדה:</h4>
+                <p id="processed-belief"></p>
+            </div>
+
+            <div class="sud-scale">
+                <div class="sud-header">
+                    <span class="sud-title">🌡️ רמת המצוקה (SUD) - אחרי</span>
+                    <span class="sud-value" id="sud-after-value">5</span>
+                </div>
+                <input type="range" class="sud-slider" id="sud-after" min="0" max="10" value="5" oninput="document.getElementById('sud-after-value').textContent=this.value">
+                <div class="sud-labels">
+                    <span>0 - שלווה מוחלטת</span>
+                    <span>10 - מצוקה קשה</span>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 מה קרה?</strong><br>
+                • אם ה-SUD ירד - מעולה! המוח עיבד את הרגש<br>
+                • אם לא ירד - זה בסדר, לפעמים צריך כמה סשנים<br>
+                • אם עלה - יכול להיות שעלה חומר חדש לעיבוד
+            </div>
+
+            <div class="belief-section">
+                <div class="belief-label">📝 מה עלה במהלך הסשן? (אופציונלי)</div>
+                <textarea class="belief-textarea" id="session-notes" placeholder="מחשבות, תחושות, זיכרונות, תובנות..."></textarea>
+            </div>
+
+            <button class="save-btn" onclick="saveSession()">שמירה וסיום ✨</button>
+        </div>
+
+        <div id="history-screen" class="screen">
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3>היסטוריית הסשנים</h3>
+                <p>כל התהליכים שנעשו</p>
+            </div>
+            <div id="history-list"></div>
+        </div>
+
+        <button class="reset-btn" onclick="resetAllData()">🔄 איפוס נתונים</button>
+    </div>
+
+    <div class="nav-container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-screen="home" onclick="showScreen('home')">
+                <span class="icon">🏠</span>בית
+            </button>
+            <button class="nav-tab" data-screen="session" onclick="showScreen('session')">
+                <span class="icon">▶️</span>סשן
+            </button>
+            <button class="nav-tab" data-screen="history" onclick="showScreen('history')">
+                <span class="icon">📊</span>היסטוריה
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function resetAllData() {
+            alert('מאפס נתונים...');
+            localStorage.removeItem('empData');
+            location.reload();
+        }
+
+        var dataStr = localStorage.getItem('empData');
+        var data;
+        try {
+            data = dataStr ? JSON.parse(dataStr) : null;
+        } catch(e) {
+            data = null;
+        }
+        if (!data || typeof data !== 'object') {
+            data = { sessions: [], totalMinutes: 0, totalSessions: 0 };
+        }
+        if (!Array.isArray(data.sessions)) {
+            data.sessions = [];
+        }
+
+        var state = {
+            isPlaying: false,
+            speed: 0.7,
+            passes: 6,
+            duration: 20,
+            currentPass: 0,
+            movement: 'horizontal',
+            timer: 0,
+            timerInt: null,
+            animFrame: null,
+            ballPos: 0,
+            direction: 1,
+            belief: '',
+            posBelief: '',
+            sudBefore: 5
+        };
+
+        function adjustDuration(d) {
+            state.duration = Math.max(10, Math.min(120, state.duration + d));
+            document.getElementById('duration-value').textContent = state.duration;
+        }
+
+        function saveData() {
+            localStorage.setItem('empData', JSON.stringify(data));
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-sessions').textContent = data.totalSessions || 0;
+            document.getElementById('stat-minutes').textContent = data.totalMinutes || 0;
+            document.getElementById('stat-beliefs').textContent = data.sessions ? data.sessions.length : 0;
+            
+            if (data.sessions && data.sessions.length > 0) {
+                var drops = [];
+                for (var i = 0; i < data.sessions.length; i++) {
+                    var s = data.sessions[i];
+                    if (s && typeof s.sudBefore === 'number' && typeof s.sudAfter === 'number') {
+                        var d = s.sudBefore - s.sudAfter;
+                        if (d > 0) drops.push(d);
+                    }
+                }
+                if (drops.length > 0) {
+                    var sum = 0;
+                    for (var j = 0; j < drops.length; j++) sum += drops[j];
+                    document.getElementById('stat-avg-drop').textContent = (sum / drops.length).toFixed(1);
+                }
+            }
+        }
+
+        function showScreen(name) {
+            var screens = document.querySelectorAll('.screen');
+            for (var i = 0; i < screens.length; i++) {
+                screens[i].classList.remove('active');
+            }
+            var targetScreen = document.getElementById(name + '-screen');
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+            
+            var tabs = document.querySelectorAll('.nav-tab');
+            for (var j = 0; j < tabs.length; j++) {
+                tabs[j].classList.remove('active');
+                if (tabs[j].getAttribute('data-screen') === name) {
+                    tabs[j].classList.add('active');
+                }
+            }
+            
+            if (name === 'history') {
+                renderHistory();
+            }
+        }
+
+        function startEMPSession() {
+            var beliefInput = document.getElementById('belief-input');
+            var belief = beliefInput ? beliefInput.value.trim() : '';
+            if (!belief) {
+                alert('יש להכניס אמונה או זיכרון לעיבוד');
+                return;
+            }
+            
+            var posBeliefInput = document.getElementById('positive-belief');
+            var sudBeforeInput = document.getElementById('sud-before');
+            
+            state.belief = belief;
+            state.posBelief = posBeliefInput ? posBeliefInput.value.trim() : '';
+            state.sudBefore = sudBeforeInput ? parseInt(sudBeforeInput.value) : 5;
+            state.currentPass = 0;
+            state.timer = 0;
+            state.ballPos = 0;
+            state.direction = 1;
+            state.isPlaying = false;
+            
+            document.getElementById('total-passes').textContent = state.passes;
+            document.getElementById('current-pass').textContent = '0';
+            document.getElementById('session-timer').textContent = '00:00';
+            document.getElementById('play-btn').textContent = '▶️ התחלה';
+            document.getElementById('session-ball').style.left = '10px';
+            
+            showScreen('active-session');
+        }
+
+        function setMovement(type) {
+            state.movement = type;
+            var btns = document.querySelectorAll('.movement-btn');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove('active');
+            }
+            var btn = document.getElementById(type + '-btn');
+            if (btn) btn.classList.add('active');
+            state.ballPos = 0;
+            document.getElementById('session-ball').style.left = '10px';
+        }
+
+        function adjustSpeed(d) {
+            state.speed = Math.max(0.3, Math.min(2.0, state.speed + d));
+            document.getElementById('speed-value').textContent = state.speed.toFixed(1);
+        }
+
+        function adjustPasses(d) {
+            state.passes = Math.max(4, Math.min(20, state.passes + d));
+            document.getElementById('passes-value').textContent = state.passes;
+            document.getElementById('total-passes').textContent = state.passes;
+        }
+
+        function toggleSession() {
+            if (state.isPlaying) {
+                pauseSession();
+            } else {
+                playSession();
+            }
+        }
+
+        function playSession() {
+            state.isPlaying = true;
+            document.getElementById('play-btn').textContent = '⏸️ השהייה';
+            
+            if (state.timerInt) clearInterval(state.timerInt);
+            state.timerInt = setInterval(function() {
+                state.timer++;
+                var m = Math.floor(state.timer / 60);
+                var s = state.timer % 60;
+                document.getElementById('session-timer').textContent = 
+                    (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            }, 1000);
+            
+            animateBall();
+        }
+
+        function pauseSession() {
+            state.isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶️ המשך';
+            if (state.timerInt) {
+                clearInterval(state.timerInt);
+                state.timerInt = null;
+            }
+            if (state.animFrame) {
+                cancelAnimationFrame(state.animFrame);
+                state.animFrame = null;
+            }
+        }
+
+        function animateBall() {
+            if (!state.isPlaying) return;
+            
+            var ball = document.getElementById('session-ball');
+            var track = document.getElementById('session-track');
+            if (!ball || !track) return;
+            
+            var maxPos = track.offsetWidth - 60;
+            if (maxPos < 50) maxPos = 200;
+            
+            var speed = state.speed * 4;
+            
+            state.ballPos += speed * state.direction;
+            
+            if (state.ballPos >= maxPos) {
+                state.ballPos = maxPos;
+                state.direction = -1;
+                state.currentPass++;
+                document.getElementById('current-pass').textContent = state.currentPass;
+            } else if (state.ballPos <= 0) {
+                state.ballPos = 0;
+                state.direction = 1;
+                state.currentPass++;
+                document.getElementById('current-pass').textContent = state.currentPass;
+            }
+            
+            ball.style.left = state.ballPos + 'px';
+            
+            if (state.currentPass >= state.passes || state.timer >= state.duration) {
+                endSession();
+                return;
+            }
+            
+            state.animFrame = requestAnimationFrame(animateBall);
+        }
+
+        function endSession() {
+            pauseSession();
+            document.getElementById('processed-belief').textContent = state.belief;
+            document.getElementById('sud-after').value = state.sudBefore;
+            document.getElementById('sud-after-value').textContent = state.sudBefore;
+            document.getElementById('session-notes').value = '';
+            showScreen('end-session');
+        }
+
+        function saveSession() {
+            var sudAfterInput = document.getElementById('sud-after');
+            var notesInput = document.getElementById('session-notes');
+            
+            var sudAfter = sudAfterInput ? parseInt(sudAfterInput.value) : state.sudBefore;
+            var notes = notesInput ? notesInput.value.trim() : '';
+            
+            var session = {
+                date: new Date().toLocaleDateString('he-IL'),
+                time: new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}),
+                belief: state.belief,
+                posBelief: state.posBelief,
+                sudBefore: state.sudBefore,
+                sudAfter: sudAfter,
+                duration: state.timer,
+                notes: notes
+            };
+            
+            data.sessions.unshift(session);
+            data.totalSessions = (data.totalSessions || 0) + 1;
+            data.totalMinutes = (data.totalMinutes || 0) + Math.ceil(state.timer / 60);
+            saveData();
+            
+            document.getElementById('belief-input').value = '';
+            document.getElementById('positive-belief').value = '';
+            
+            var drop = state.sudBefore - sudAfter;
+            var msg = 'הסשן נשמר בהצלחה!\n\n';
+            if (drop > 0) {
+                msg += '🎉 ירידה ב-SUD: ' + drop + ' נקודות!\nעבודה מעולה!';
+            } else if (drop === 0) {
+                msg += 'ה-SUD נשאר זהה. לפעמים צריך כמה סשנים.';
+            } else {
+                msg += 'ה-SUD עלה - יכול להיות שעלה חומר חדש לעיבוד.';
+            }
+            alert(msg);
+            showScreen('home');
+        }
+
+        function renderHistory() {
+            var container = document.getElementById('history-list');
+            if (!container) return;
+            
+            if (!data.sessions || data.sessions.length === 0) {
+                container.innerHTML = '<div class="card"><p style="text-align:center;color:#888;">עדיין אין סשנים שמורים</p></div>';
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < data.sessions.length; i++) {
+                var s = data.sessions[i];
+                if (!s) continue;
+                
+                var drop = (s.sudBefore || 0) - (s.sudAfter || 0);
+                var arrow = drop > 0 ? '↓' + drop : (drop < 0 ? '↑' + Math.abs(drop) : '→');
+                var mins = Math.floor((s.duration || 0) / 60);
+                
+                html += '<div class="journal-entry">';
+                html += '<div class="journal-date">' + (s.date || '') + ' | ' + (s.time || '') + ' | ' + mins + ' דקות</div>';
+                html += '<div class="journal-content">' + (s.belief || '') + '</div>';
+                html += '<span class="journal-sud">SUD: ' + (s.sudBefore || 0) + ' ' + arrow + ' ' + (s.sudAfter || 0) + '</span>';
+                if (s.notes) {
+                    html += '<div class="journal-content" style="margin-top:10px;font-style:italic;">' + s.notes + '</div>';
+                }
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>
